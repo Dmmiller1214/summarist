@@ -1,10 +1,34 @@
+"use client";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { AiFillAudio, AiFillBulb, AiFillFileText } from "react-icons/ai";
 import { BiCrown } from "react-icons/bi";
 import { BsStarFill, BsStarHalf } from "react-icons/bs";
 import { RiLeafLine } from "react-icons/ri";
+import AuthModal from "@/components/AuthModal";
+import { onAuthStateChanged, signOut, User } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 
 export default function Home() {
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const stopListening = onAuthStateChanged(auth, (user) => {
+      setCurrentUser(user);
+    });
+
+    return stopListening;
+  }, []);
+
+  async function handleAuthButtonClick() {
+    if (currentUser) {
+      await signOut(auth);
+    } else {
+      setIsAuthModalOpen(true);
+    }
+  }
+
   return (
     <main className="min-h-screen bg-white text-[#032b41]">
       <nav className="h-20">
@@ -19,8 +43,11 @@ export default function Home() {
 
           <ul className="flex gap-6">
             <li>
-              <button className="cursor-pointer transition-colors hover:text-[#2bd97c]">
-                Login
+              <button
+                onClick={handleAuthButtonClick}
+                className="cursor-pointer transition-colors hover:text-[#2bd97c]"
+              >
+                {currentUser ? "Logout" : "Login"}
               </button>
             </li>
             <li className="hidden cursor-not-allowed sm:block">About</li>
@@ -48,8 +75,11 @@ export default function Home() {
                 and even people who don&apos;t like to read.
               </p>
 
-              <button className="h-10 w-full max-w-[300px] rounded-sm bg-[#2bd97c] text-base text-[#032b41] transition-colors hover:bg-[#20ba68] active:translate-y-px">
-                Login
+              <button
+                onClick={handleAuthButtonClick}
+                className="h-10 w-full max-w-[300px] rounded-sm bg-[#2bd97c] text-base text-[#032b41] transition-colors hover:bg-[#20ba68] active:translate-y-px"
+              >
+                {currentUser ? "Logout" : "Login"}
               </button>
             </div>
 
@@ -312,8 +342,11 @@ export default function Home() {
           </div>
 
           <div className="flex justify-center">
-            <button className="h-10 w-full max-w-[300px] rounded-sm bg-[#2bd97c] text-base text-[#032b41] transition-colors hover:bg-[#20ba68] active:translate-y-px">
-              Login
+            <button
+              onClick={handleAuthButtonClick}
+              className="h-10 w-full max-w-[300px] rounded-sm bg-[#2bd97c] text-base text-[#032b41] transition-colors hover:bg-[#20ba68] active:translate-y-px"
+            >
+              {currentUser ? "Logout" : "Login"}
             </button>
           </div>
         </div>
@@ -430,6 +463,10 @@ export default function Home() {
           </p>
         </div>
       </footer>
+
+      {isAuthModalOpen && (
+        <AuthModal onClose={() => setIsAuthModalOpen(false)} />
+      )}
     </main>
   );
 }
