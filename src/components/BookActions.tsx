@@ -7,6 +7,8 @@ import { FiBookOpen, FiHeadphones } from "react-icons/fi";
 import AuthModal from "@/components/AuthModal";
 import { auth } from "@/lib/firebase";
 
+type SubscriptionPlan = "basic" | "premium" | "premium-plus";
+
 type BookActionsProps = {
   bookId: string;
   subscriptionRequired: boolean;
@@ -20,11 +22,36 @@ export default function BookActions({
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [subscriptionPlan, setSubscriptionPlan] =
+    useState<SubscriptionPlan>("basic");
 
   useEffect(() => {
-    const stopListening = onAuthStateChanged(auth, (user) => {
+    const stopListening = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
-      setIsAuthReady(true);
+
+      if (!user) {
+        setSubscriptionPlan("basic");
+        setIsAuthReady(true);
+        return;
+      }
+
+      try {
+        const idToken = await user.getIdToken();
+        const response = await fetch("/api/subscription/confirm", {
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+          },
+        });
+        const data = (await response.json()) as {
+          plan?: SubscriptionPlan;
+        };
+
+        setSubscriptionPlan(response.ok && data.plan ? data.plan : "basic");
+      } catch {
+        setSubscriptionPlan("basic");
+      } finally {
+        setIsAuthReady(true);
+      }
     });
 
     return stopListening;
@@ -36,7 +63,7 @@ export default function BookActions({
       return;
     }
 
-    if (subscriptionRequired) {
+    if (subscriptionRequired && subscriptionPlan === "basic") {
       router.push("/choose-plan");
       return;
     }
