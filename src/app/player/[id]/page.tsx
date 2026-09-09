@@ -1,5 +1,7 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
+import AudioPlayer from "@/components/AudioPlayer";
+import PlayerAccessGate from "@/components/PlayerAccessGate";
 import SearchBar from "@/components/SearchBar";
 import Sidebar from "@/components/Sidebar";
 import type { Book } from "@/types/book";
@@ -36,6 +38,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
       <div className="md:ml-60">
         <SearchBar />
 
+        <PlayerAccessGate subscriptionRequired={book.subscriptionRequired}>
         <main className="min-h-[calc(100vh-80px)] bg-white px-6 py-12 text-[#032b41]">
           <div className="mx-auto w-full max-w-[900px]">
             <header className="flex flex-col items-center gap-6 border-b border-[#e1e7ea] pb-8 text-center sm:flex-row sm:text-left">
@@ -62,14 +65,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
             <section className="mt-8">
               <h2 className="text-2xl font-bold">Audio</h2>
 
-              <audio
-                controls
-                preload="metadata"
-                className="mt-4 w-full"
-              >
-                <source src={book.audioLink} type="audio/mpeg" />
-                Your browser does not support audio playback.
-              </audio>
+              <AudioPlayer src={book.audioLink} title={book.title} />
             </section>
 
             <section className="mt-10">
@@ -81,6 +77,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
             </section>
           </div>
         </main>
+        </PlayerAccessGate>
       </div>
     </>
   );
