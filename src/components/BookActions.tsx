@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { useRouter } from "next/navigation";
-import { FiBookOpen, FiHeadphones } from "react-icons/fi";
+import { FiBookmark, FiBookOpen, FiHeadphones } from "react-icons/fi";
 import AuthModal from "@/components/AuthModal";
 import { auth } from "@/lib/firebase";
 
@@ -24,6 +24,8 @@ export default function BookActions({
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [subscriptionPlan, setSubscriptionPlan] =
     useState<SubscriptionPlan>("basic");
+  const [isSaved, setIsSaved] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     const stopListening = onAuthStateChanged(auth, async (user) => {
@@ -37,16 +39,17 @@ export default function BookActions({
 
       try {
         const idToken = await user.getIdToken();
-        const response = await fetch("/api/subscription/confirm", {
-          headers: {
-            Authorization: `Bearer ${idToken}`,
-          },
-        });
+        const headers = { Authorization: `Bearer ${idToken}` };
+        const [response, savedResponse] = await Promise.all([
+          fetch("/api/subscription/confirm", { headers }),
+          fetch(`/api/library?bookId=${encodeURIComponent(bookId)}`, { headers }),
+        ]);
         const data = (await response.json()) as {
           plan?: SubscriptionPlan;
         };
 
         setSubscriptionPlan(response.ok && data.plan ? data.plan : "basic");
+        if (savedResponse.ok) setIsSaved(((await savedResponse.json()) as { saved: boolean }).saved);
       } catch {
         setSubscriptionPlan("basic");
       } finally {
@@ -55,7 +58,21 @@ export default function BookActions({
     });
 
     return stopListening;
-  }, []);
+  }, [bookId]);
+
+  async function toggleSaved() {
+    if (!currentUser) { setIsAuthModalOpen(true); return; }
+    setIsSaving(true);
+    try {
+      const token = await currentUser.getIdToken();
+      const response = await fetch(isSaved ? `/api/library?bookId=${encodeURIComponent(bookId)}` : "/api/library", {
+        method: isSaved ? "DELETE" : "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        ...(!isSaved && { body: JSON.stringify({ bookId }) }),
+      });
+      if (response.ok) setIsSaved(!isSaved);
+    } finally { setIsSaving(false); }
+  }
 
   function openBook() {
     if (!currentUser) {
@@ -94,6 +111,11 @@ export default function BookActions({
           Listen
         </button>
       </div>
+
+      <button type="button" onClick={toggleSaved} disabled={!isAuthReady || isSaving} className="mt-4 flex items-center gap-2 font-semibold text-[#0365f2] disabled:opacity-60">
+        <FiBookmark className={isSaved ? "fill-current" : ""} />
+        {isSaving ? "Saving..." : isSaved ? "Saved in My Library" : "Add title to My Library"}
+      </button>
 
       {isAuthModalOpen && (
         <AuthModal onClose={() => setIsAuthModalOpen(false)} />
