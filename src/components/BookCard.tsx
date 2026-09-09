@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { AiFillStar } from "react-icons/ai";
+import AudioDuration from "@/components/AudioDuration";
 import type { Book } from "@/types/book";
 
 type BookCardProps = {
@@ -39,12 +40,15 @@ export default function BookCard({ book }: BookCardProps) {
         {book.subTitle}
       </p>
 
-      <div className="mt-2 flex items-center gap-1 text-sm text-[#6b757b]">
-        <AiFillStar
-          className="h-4 w-4 fill-[#0365f2]"
-          aria-hidden="true"
-        />
-        <span>{book.averageRating}</span>
+      <div className="mt-2 flex items-center gap-4 text-sm text-[#6b757b]">
+        <span className="flex items-center gap-1">
+          <AiFillStar
+            className="h-4 w-4 fill-[#0365f2]"
+            aria-hidden="true"
+          />
+          <span>{book.averageRating}</span>
+        </span>
+        <AudioDuration src={book.audioLink} />
       </div>
     </Link>
   );

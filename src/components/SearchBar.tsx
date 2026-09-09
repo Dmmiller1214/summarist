@@ -41,7 +41,7 @@ export default function SearchBar() {
       } finally {
         setIsLoading(false);
       }
-    }, 500);
+    }, 300);
 
     return () => window.clearTimeout(timer);
   }, [search]);

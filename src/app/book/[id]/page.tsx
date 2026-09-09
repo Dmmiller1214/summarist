@@ -6,6 +6,7 @@ import SearchBar from "@/components/SearchBar";
 import Sidebar from "@/components/Sidebar";
 import type { Book } from "@/types/book";
 import BookActions from "@/components/BookActions";
+import AudioDuration from "@/components/AudioDuration";
 
 type BookPageProps = {
   params: Promise<{
@@ -76,6 +77,8 @@ export default async function BookPage({ params }: BookPageProps) {
                       <FiHeadphones className="h-5 w-5" aria-hidden="true" />
                       <span>{book.type}</span>
                     </div>
+
+                    <AudioDuration src={book.audioLink} />
                   </div>
                 </div>
 

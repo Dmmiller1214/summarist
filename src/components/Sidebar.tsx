@@ -12,11 +12,13 @@ import {
   FiSettings,
 } from "react-icons/fi";
 import { onAuthStateChanged, signOut, User } from "firebase/auth";
+import { usePathname } from "next/navigation";
 
 import { auth } from "@/lib/firebase";
 import AuthModal from "@/components/AuthModal";
 
 export default function Sidebar() {
+  const pathname = usePathname();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
@@ -54,7 +56,11 @@ export default function Sidebar() {
             <li>
               <Link
                 href="/for-you"
-                className="flex items-center gap-3 border-l-4 border-[#2bd97c] bg-[#eaf9f1] px-5 py-4 font-medium"
+                className={`flex items-center gap-3 border-l-4 px-5 py-4 font-medium ${
+                  pathname === "/for-you"
+                    ? "border-[#2bd97c] bg-[#eaf9f1]"
+                    : "border-transparent text-[#394547] hover:bg-[#eaf9f1]"
+                }`}
               >
                 <FiHome className="h-6 w-6" aria-hidden="true" />
                 For You
@@ -94,13 +100,17 @@ export default function Sidebar() {
 
           <ul>
             <li>
-              <button
-                type="button"
-                className="flex w-full cursor-not-allowed items-center gap-3 border-l-4 border-transparent px-5 py-4 text-left text-[#394547]"
+              <Link
+                href="/settings"
+                className={`flex items-center gap-3 border-l-4 px-5 py-4 text-[#394547] ${
+                  pathname === "/settings"
+                    ? "border-[#2bd97c] bg-[#eaf9f1] font-medium"
+                    : "border-transparent hover:bg-[#eaf9f1]"
+                }`}
               >
                 <FiSettings className="h-6 w-6" aria-hidden="true" />
                 Settings
-              </button>
+              </Link>
             </li>
 
             <li>
