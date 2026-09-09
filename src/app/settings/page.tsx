@@ -48,7 +48,11 @@ async function confirmCheckout(
     error?: string;
   };
 
-  if (!response.ok || !data.plan || !data.subscriptionStatus) {
+  if (
+    !response.ok ||
+    !data.plan ||
+    typeof data.subscriptionStatus !== "string"
+  ) {
     throw new Error(
       data.error ?? "Unable to confirm your subscription.",
     );
